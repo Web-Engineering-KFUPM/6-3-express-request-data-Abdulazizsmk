@@ -6,6 +6,8 @@ Back-end Lab — Express request data
 ===================================================================
 LAB SETUP INSTRUCTIONS
 ===================================================================
+import express from "express";
+const app = express();
 
 1. Navigate to the project directory:
    Open your terminal and run:
@@ -35,6 +37,14 @@ LAB SETUP INSTRUCTIONS
  *   HINT: 
  *     const app = express();
  *     app.listen(3000, ()=> console.log(...));
+app.listen(3000, () => {
+  console.log("API running at http://localhost:3000");
+});
+
+// Basic root route just to verify server
+app.get("/", (req, res) => {
+  res.send("Server is up!");
+});
  * 
  *============================================
  * TODO-2 (/echo route):
@@ -46,6 +56,23 @@ LAB SETUP INSTRUCTIONS
  *   HINT:
  *     app.get("/echo", (req,res)=>{ ... });
  *     const {name, age} = req.query;
+app.get("/echo", (req, res) => {
+  const { name, age } = req.query;
+
+  if (!name || !age) {
+    return res.status(400).json({
+      ok: false,
+      error: "name & age required",
+    });
+  }
+
+  res.json({
+    ok: true,
+    name,
+    age,
+    msg: `Hello ${name}, you are ${age}`,
+  });
+});
  *
  * ============================================
  * TODO-3 (/profile/:first/:last route):
@@ -56,6 +83,8 @@ LAB SETUP INSTRUCTIONS
  *   HINT:
  *     app.get("/profile/:first/:last", (req,res)=>{ ... });
  *     const { first, last } = req.params;
+ * 
+
  *
  * ============================================
  * TODO-4 (Param middleware):
@@ -66,6 +95,20 @@ LAB SETUP INSTRUCTIONS
  *   - else store numeric value into req.userIdNum and call next()
  *   HINT:
  *     app.param("userId", (req,res,next,userId)=>{ ... });
+ 
+app.param("userId", (req, res, next, userId) => {
+  const num = Number(userId);
+
+  if (isNaN(num) || num <= 0) {
+    return res.status(400).json({
+      ok: false,
+      error: "userId must be positive number",
+    });
+  }
+
+  req.userIdNum = num;
+  next();
+});
  *
  * ============================================
  * TODO-5 (/users/:userId route):
@@ -74,6 +117,13 @@ LAB SETUP INSTRUCTIONS
  *   - return JSON: { ok:true, userId: req.userIdNum }
  *   HINT:
  *     app.get("/users/:userId", (req,res)=>{ ... });
+ * 
+app.get("/users/:userId", (req, res) => {
+  res.json({
+    ok: true,
+    userId: req.userIdNum,
+  });
+});
  *
  *============================================
  *Test the following URLS
